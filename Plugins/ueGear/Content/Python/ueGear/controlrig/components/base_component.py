@@ -196,6 +196,13 @@ class UEComponent(object):
         """
         self.nodes["misc_functions"].append(node)
 
+    def custom_connections(self, controller: unreal.RigVMController):
+        """OVERLOAD THIS METHOD
+
+        This method allows the component to have some non-generic connection logic, if required.
+        """
+        pass
+
     def get_misc_functions(self):
         """Gets all miscellaneous functions relating to this component"""
         return self.nodes["misc_functions"]

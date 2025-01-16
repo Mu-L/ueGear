@@ -489,6 +489,8 @@ class UEGearManager:
             else:
                 unreal.log_error(f"Invalid relationship data found: {comp.name}")
 
+            comp.custom_connections(bp_controller)
+
     def connect_components(self):
         """Connects all the built components"""
         import time

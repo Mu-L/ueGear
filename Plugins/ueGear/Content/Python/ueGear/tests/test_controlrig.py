@@ -14,7 +14,7 @@ from ueGear.controlrig.components import *
 from ueGear.controlrig import components
 from ueGear.controlrig.mgear import component, rig
 
-from ueGear.controlrig.components import EPIC_foot_01 as epic_comp
+from ueGear.controlrig.components import EPIC_spine_02 as epic_comp
 from ueGear.controlrig.components import EPIC_leg_02 as epic_comp_2
 
 importlib.reload(epic_comp)
@@ -24,6 +24,7 @@ importlib.reload(mgear)
 importlib.reload(component)
 importlib.reload(rig)
 importlib.reload(ueM)
+
 
 # ---
 
@@ -123,6 +124,11 @@ def test_create_fk_control():
     gear_manager.group_components()
 
 
+import time
+
+TIMES = {}
+
+
 def test_create_spine_shoulders_control():
     """
     Test will check to see if a control is generated and added to the correct Construction, Forward and Backwards Solve.
@@ -134,11 +140,20 @@ def test_create_spine_shoulders_control():
     TEST_CONTROLRIG_NAME = "test_create_rig"
     TEST_CONTROLRIG_SKM = "/Game/ButcherBoy/ButcherBoy_Master"
 
+    start_time = time.time()
+
     # Converts teh json data into a class based structure, filters out non-required metadata.
     mgear_rig = mgear.convert_json_to_mg_rig(TEST_BUILD_JSON)
 
-    gear_manager = UEGearManager()
+    end_time = time.time()
+    TIMES["Convert_JSON"] = end_time - start_time
+
+    start_time = time.time()
+    gear_manager = ueM.UEGearManager()
     gear_manager.load_rig(mgear_rig)
+
+    end_time = time.time()
+    TIMES["Load_Rig"] = end_time - start_time
 
     # Creates an asset path
     cr_path = TEST_CONTROLRIG_PATH + "/" + TEST_CONTROLRIG_NAME
@@ -155,32 +170,38 @@ def test_create_spine_shoulders_control():
         unreal.EditorAssetLibrary.delete_directory("/Game/TEST/")
         return None
 
+    start_time = time.time()
+
+    # Deactivate Autocompile, to speed up builds
+    compile_status = gear_manager.get_compile_mode()
+    gear_manager.set_compile_mode(False)
+
     # At this point we now have The Manager, with an empty Control Rig BP
 
     # Builds the world control if it has been enabled in the Main Settings
     gear_manager.build_world_control()
 
     # Builds component by name
-    # gear_manager.build_component('global_C0', ignore_parent=True)
-    # gear_manager.build_component('local_C0', ignore_parent=True)
-    # gear_manager.build_component('root_C0', ignore_parent=True)
+    gear_manager.build_component('global_C0', ignore_parent=True)
+    gear_manager.build_component('local_C0', ignore_parent=True)
+    gear_manager.build_component('root_C0', ignore_parent=True)
     gear_manager.build_component('body_C0', ignore_parent=True)
     gear_manager.build_component('spine_C0', ignore_parent=True)
 
-    gear_manager.build_component('neck_C0', ignore_parent=True)
+    # gear_manager.build_component('neck_C0', ignore_parent=True)
 
-    gear_manager.build_component('shoulder_L0', ignore_parent=True)
+    # gear_manager.build_component('shoulder_L0', ignore_parent=True)
     # gear_manager.build_component('shoulder_R0', ignore_parent=True)
 
-    # gear_manager.build _component('arm_L0', ignore_parent=True)
+    # gear_manager.build_component('arm_L0', ignore_parent=True)
     # gear_manager.build_component('arm_R0', ignore_parent=True)
-
-    gear_manager.build_component('leg_L0', ignore_parent=True)
+    #
+    # gear_manager.build_component('leg_L0', ignore_parent=True)
     # gear_manager.build_component('leg_R0', ignore_parent=True)
-    # #
-    gear_manager.build_component('foot_L0', ignore_parent=True)
+    #
+    # gear_manager.build_component('foot_L0', ignore_parent=True)
     # gear_manager.build_component('foot_R0', ignore_parent=True)
-
+    #
     # gear_manager.build_component("finger_L0")
     # gear_manager.build_component("finger_L1")
     # gear_manager.build_component("finger_L2")
@@ -188,13 +209,30 @@ def test_create_spine_shoulders_control():
     # gear_manager.build_component("thumb_L0")
     # gear_manager.build_component("meta_L0")
 
+    end_time = time.time()
+    TIMES["Build Component"] = end_time - start_time
+
     # At this point there are many components created, but not connected to one another
-
+    start_time = time.time()
     gear_manager.populate_parents()
+    end_time = time.time()
+    TIMES["Populate Hierarchy"] = end_time - start_time
 
+    start_time = time.time()
     gear_manager.connect_components()
+    end_time = time.time()
+    TIMES["Connect Components"] = end_time - start_time
 
+    start_time = time.time()
     gear_manager.group_components()
+    end_time = time.time()
+    TIMES["Group Components"] = end_time - start_time
+
+    for key, value in TIMES.items():
+        print(f"{key} : {value}")
+
+    # Sets the Autocompiler back to how it was before building
+    gear_manager.set_compile_mode(compile_status)
 
 
 def test_build_mgRig():
@@ -241,6 +279,7 @@ def test_build_mgRig():
 
     # gear_manager.connect_components()
 
+
 def test_manager_create_control_rig():
     TEST_BUILD_JSON = r"C:\SIMON_WORK\mGear\repos\ueGear\Plugins\ueGear\Content\Python\ueGear\controlrig\butcher_data.gnx"
     TEST_CONTROLRIG_PATH = "/Game/TEST"
@@ -252,7 +291,8 @@ def test_manager_create_control_rig():
                            TEST_CONTROLRIG_PATH,
                            TEST_BUILD_JSON)
 
-#----
+
+# ----
 
 # test_build_component_count()
 # test_build_fk_count()

@@ -412,3 +412,6 @@ class Component(base_component.UEComponent):
             True,
             setup_undo_redo=True,
             merge_undo_action=True)
+
+    def custom_connections(self, controller: unreal.RigVMController):
+        print(f"Custom Connections - Leg {self.name}")
